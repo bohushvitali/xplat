@@ -34,7 +34,7 @@ With the strength of [TypeScript](https://www.typescriptlang.org/) paired with t
 * [Design Doc](https://t.co/z2lRxOBFAg)
 * [Wiki](https://github.com/nstudio/xplat/wiki/FAQ)
 
-### Talks
+## Talks
 
 * [Super Powered, Server Rendered Progressive Native Apps](https://www.youtube.com/watch?v=EqqNexmu3Ug) by [Nathan Walker](http://github.com/NathanWalker) and [Jeff Whelpley](https://github.com/jeffwhelpley)
 * [ngAir 172 - xplat (cross-platform) tools for Nx workspaces with Nathan Walker](https://www.youtube.com/watch?v=0I8D25nab5c)
@@ -43,10 +43,18 @@ With the strength of [TypeScript](https://www.typescriptlang.org/) paired with t
 
 * [Angular Console](https://angularconsole.com/)
 
+## Why?
+
+* [Why it's Hard to Decide on Technologies](https://medium.com/@adamklein_66511/why-its-hard-to-decide-on-technologies-9d67b6adf157) by [Adam Klein](https://github.com/adamkleingit)
+
 ## Contributing
 
 Please see our [guidelines for contributing](https://github.com/nstudio/xplat/blob/master/CONTRIBUTING.md).
 
+[<img alt="NathanWalker" src="https://avatars2.githubusercontent.com/u/457187?v=4&s=117" width="117">](https://github.com/NathanWalker) |[<img alt="m-abs" src="https://avatars3.githubusercontent.com/u/1348705?v=4&s=117" width="117">](https://github.com/m-abs) |[<img alt="sr3dna" src="https://avatars2.githubusercontent.com/u/15936818?v=4&s=117" width="117">](https://github.com/sr3dna) |[<img alt="mbaljeetsingh" src="https://avatars0.githubusercontent.com/u/872762?v=4&s=117" width="117">](https://github.com/mbaljeetsingh) |[<img alt="kamilmysliwiec" src="https://avatars0.githubusercontent.com/u/23244943?v=4&s=117" width="117">](https://github.com/kamilmysliwiec) |[<img alt="madmath03" src="https://avatars3.githubusercontent.com/u/6967675?v=4&s=117" width="117">](https://github.com/madmath03) |
+:---: |:---: |:---: |:---: |:---: |:---: |
+[NathanWalker](https://github.com/NathanWalker) |[m-abs](https://github.com/m-abs) |[sr3dna](https://github.com/sr3dna) |[mbaljeetsingh](https://github.com/mbaljeetsingh) |[kamilmysliwiec](https://github.com/kamilmysliwiec) |[madmath03](https://github.com/madmath03) |
 
-
-
+[<img alt="miguelramos" src="https://avatars3.githubusercontent.com/u/495720?v=4&s=117" width="117">](https://github.com/miguelramos) |
+:---: |
+[miguelramos](https://github.com/miguelramos) |

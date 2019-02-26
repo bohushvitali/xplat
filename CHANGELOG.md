@@ -1,3 +1,78 @@
+<a name="7.3.1"></a>
+## [7.3.1](https://github.com/nstudio/xplat/compare/7.3.0...7.3.1) (2019-02-24)
+
+
+### Bug Fixes
+
+* **electron:** update to v4 and fix scripts + also add migration ([#86](https://github.com/nstudio/xplat/issues/86)) ([885af21](https://github.com/nstudio/xplat/commit/885af21))
+
+
+
+<a name="7.3.0"></a>
+# [7.3.0](https://github.com/nstudio/xplat/compare/7.2.8...7.3.0) (2019-02-20)
+
+
+### Features
+
+* **generators:** xplat-helper for convenient platform tooling ([#83](https://github.com/nstudio/xplat/issues/83)) ([54c624d](https://github.com/nstudio/xplat/commit/54c624d))
+
+
+
+<a name="7.2.9"></a>
+## [7.2.9](https://github.com/nstudio/xplat/compare/7.2.8...7.2.9) (2019-02-14)
+
+
+### Bug Fixes
+
+* **scripts:** Fix [#73](https://github.com/nstudio/xplat/issues/73) postinstall windows friendly ([#82](https://github.com/nstudio/xplat/issues/82)) ([115b12a](https://github.com/nstudio/xplat/commit/115b12a))
+
+
+
+<a name="7.2.8"></a>
+## [7.2.8](https://github.com/nstudio/xplat/compare/7.2.7...7.2.8) (2019-01-31)
+
+
+### Bug Fixes
+
+* **generators:** handle capitalization on app name arguments ([f689d1e](https://github.com/nstudio/xplat/commit/f689d1e))
+
+
+
+<a name="7.2.7"></a>
+## [7.2.7](https://github.com/nstudio/xplat/compare/7.2.6...7.2.7) (2019-01-29)
+
+
+### Bug Fixes
+
+* **ionic:** route module naming ([a753e08](https://github.com/nstudio/xplat/commit/a753e08))
+
+
+
+<a name="7.2.6"></a>
+## [7.2.6](https://github.com/nstudio/xplat/compare/7.2.5...7.2.6) (2019-01-29)
+
+
+### Features
+
+* **ionic:** update to official release ([#77](https://github.com/nstudio/xplat/issues/77)) ([d5d6eb0](https://github.com/nstudio/xplat/commit/d5d6eb0))
+
+
+
+<a name="7.2.5"></a>
+## [7.2.5](https://github.com/nstudio/xplat/compare/7.2.3...7.2.5) (2019-01-29)
+
+
+### Bug Fixes
+
+* **scripts:** adjust migration ([a4fb0b6](https://github.com/nstudio/xplat/commit/a4fb0b6))
+
+
+### Features
+
+* **generators:** groupByName option to allow appname-platform ([#75](https://github.com/nstudio/xplat/issues/75)) ([50c4707](https://github.com/nstudio/xplat/commit/50c4707))
+
+
+
 <a name="7.2.3"></a>
 ## [7.2.3](https://github.com/nstudio/xplat/compare/7.2.2...7.2.3) (2019-01-20)
 

@@ -10,7 +10,8 @@ import {
   noop,
   SchematicsException,
   Tree,
-  Rule
+  Rule,
+  SchematicContext
 } from "@angular-devkit/schematics";
 
 // import { configPath, CliConfig } from '@schematics/angular/utility/config';
@@ -18,6 +19,7 @@ import { errorXplat, errorMissingPrefix } from "./errors";
 // import * as os from 'os';
 import * as fs from "fs";
 import * as ts from "typescript";
+import { toFileName } from "./name-utils";
 const util = require('util');
 const xml2js = require('xml2js');
 
@@ -37,7 +39,7 @@ export interface ITargetPlatforms {
   nest?: boolean;
 }
 
-export type IDevMode =
+export type PlatformTypes =
   | "web"
   | "nativescript"
   | "ionic"
@@ -51,8 +53,15 @@ export interface NodeDependency {
   type: "dependency" | "devDependency";
 }
 
+// list of all supported helpers
+// TODO: add more convenient helpers (like firebase or Travis ci support files)
+export const supportedHelpers = ['imports'];
+
 let npmScope: string;
+// selector prefix to use when generating various boilerplate for xplat support
 let prefix: string;
+// Group by app name (appname-platform) instead of the default (platform-appname)
+let groupByName = false;
 let isTest = false;
 
 export function getNpmScope() {
@@ -61,6 +70,14 @@ export function getNpmScope() {
 
 export function getPrefix() {
   return prefix;
+}
+
+export function getGroupByName() {
+  return groupByName;
+}
+
+export function getAppName(options: any, platform: PlatformTypes) {
+  return groupByName ? options.name.replace(`-${platform}`, '') : options.name.replace(`${platform}-`, '');
 }
 
 export function getFileContent(tree: Tree, path: string) {
@@ -133,6 +150,22 @@ export function getNxWorkspaceConfig(tree: Tree): any {
   );
 }
 
+export function applyAppNamingConvention(options: any, platform: PlatformTypes) {
+  return (tree: Tree, context: SchematicContext) => {
+    const nameSanitized = toFileName(options.name);
+    options.name = groupByName ? `${nameSanitized}-${platform}` : `${platform}-${nameSanitized}`;
+    // if command line argument, make sure it's persisted to xplat settings
+    if (options.groupByName) {
+      return updatePackageForXplat(tree, null, {
+        groupByName: true
+      });
+    } else {
+      // adjusted name, nothing else to do
+      return noop()(tree, context);
+    }
+  };
+}
+
 export const copy = (tree: Tree, from: string, to: string) => {
   const file = tree.get(from);
   if (!file) {
@@ -147,24 +180,39 @@ const setDependency = (
   { name, version }: NodeDependency
 ) => Object.assign(dependenciesMap, { [name]: version });
 
-export function prerun(prefixArg?: string, init?: boolean) {
+export function prerun(options?: any, init?: boolean) {
   return (tree: Tree) => {
     const nxJson = getNxWorkspaceConfig(tree);
     if (nxJson) {
       npmScope = nxJson.npmScope || "workspace";
     }
+    // console.log('npmScope:', npmScope);
     const packageJson = getJsonFromFile(tree, "package.json");
 
     if (packageJson) {
-      prefix = packageJson.xplat ? packageJson.xplat.prefix : "";
-      if (prefixArg) {
-        if (prefix) {
-          // console.warn(getPrefixWarning(prefix));
-        } else if (init) {
-          // initializing for first time
-          prefix = prefixArg;
+      prefix = "";
+      if (packageJson.xplat) {
+        // use persisted xplat settings 
+        prefix = packageJson.xplat.prefix || npmScope; // (if not prefix, default to npmScope)
+        if (options) {
+          // ensure options are updated
+          options.prefix = prefix;
+        }
+        // grouping
+        groupByName = packageJson.xplat.groupByName || (options ? options.groupByName : false);
+      } else if (options) {
+        groupByName = options.groupByName;
+        if (options.prefix) {
+          if (!prefix && init) {
+            // initializing for first time
+            prefix = options.prefix;
+          }
+        } else {
+          // default to npmScope for prefix
+          options.prefix = npmScope;
         }
       }
+      // console.log('prefix:', prefix);
       if (!prefix) {
         if (init) {
           // if no prefix was found and we're initializing, user need to specify a prefix
@@ -283,43 +331,36 @@ export function addRootDeps(
     if (targetPlatforms.ionic) {
       dep = {
         name: "@ionic-native/core",
-        version: "^5.0.0-beta.15",
+        version: "^5.0.0",
         type: "dependency"
       };
       deps.push(dep);
 
       dep = {
         name: "@ionic-native/splash-screen",
-        version: "^5.0.0-beta.14",
+        version: "^5.0.0",
         type: "dependency"
       };
       deps.push(dep);
 
       dep = {
         name: "@ionic-native/status-bar",
-        version: "^5.0.0-beta.14",
+        version: "^5.0.0",
         type: "dependency"
       };
       deps.push(dep);
 
       dep = {
         name: "@ionic/angular",
-        version: "^4.0.0-beta.3",
+        version: "^4.0.0",
         type: "dependency"
       };
       deps.push(dep);
 
       dep = {
-        name: "@ionic/ng-toolkit",
-        version: "~1.0.0",
-        type: "dependency"
-      };
-      deps.push(dep);
-
-      dep = {
-        name: "@ionic/schematics-angular",
-        version: "~1.0.0",
-        type: "dependency"
+        name: "@ionic/angular-toolkit",
+        version: "~1.2.0",
+        type: "devDependency"
       };
       deps.push(dep);
     }
@@ -328,49 +369,56 @@ export function addRootDeps(
     if (targetPlatforms.electron) {
       dep = {
         name: "electron",
-        version: "2.0.8",
+        version: "^4.0.5",
         type: "devDependency"
       };
       deps.push(dep);
 
       dep = {
         name: "electron-builder",
-        version: "20.28.4",
+        version: "^20.38.4",
+        type: "devDependency"
+      };
+      deps.push(dep);
+
+      dep = {
+        name: "electron-rebuild",
+        version: "~1.8.4",
         type: "devDependency"
       };
       deps.push(dep);
 
       dep = {
         name: "electron-installer-dmg",
-        version: "1.0.0",
+        version: "~2.0.0",
         type: "devDependency"
       };
       deps.push(dep);
 
       dep = {
         name: "electron-packager",
-        version: "12.1.0",
+        version: "~13.1.0",
         type: "devDependency"
       };
       deps.push(dep);
 
       dep = {
         name: "electron-reload",
-        version: "1.2.5",
+        version: "~1.4.0",
         type: "devDependency"
       };
       deps.push(dep);
 
       dep = {
         name: "electron-store",
-        version: "2.0.0",
+        version: "~2.0.0",
         type: "devDependency"
       };
       deps.push(dep);
 
       dep = {
         name: "electron-updater",
-        version: "3.1.2",
+        version: "~4.0.6",
         type: "devDependency"
       };
       deps.push(dep);
@@ -391,7 +439,7 @@ export function addRootDeps(
 
       dep = {
         name: "wait-on",
-        version: "2.1.0",
+        version: "~3.2.0",
         type: "devDependency"
       };
       deps.push(dep);
@@ -576,21 +624,34 @@ export function addRootDeps(
 
 export function updatePackageForXplat(
   tree: Tree,
-  targetPlatforms: ITargetPlatforms
+  // used when generating xplat support
+  targetPlatforms?: ITargetPlatforms,
+  // used to update various xplat workspace settings 
+  // can be used in combination with other generators to adjust settings 
+  updatedSettings?: any
 ) {
-  const path = "package.json";
-  const packageJson = getJsonFromFile(tree, path);
+  const packagePath = "package.json";
+  const packageJson = getJsonFromFile(tree, packagePath);
 
   if (packageJson) {
-    // TODO: track this in angular.json (or xplat.json) in future
+    // TODO: potentially track this in angular.json (or xplat.json) in future
     // doing so would involve customizing Nx schema.json which unsure about right now
     // Ideally would store this as 'project': { 'prefix': prefix } (or add 'xplat' key there) for entire workspace/xplat setup, however that's unsupported in schema out of the box
     // prefix is important because shared code is setup with a prefix to begin with which should be known and used for all subsequent apps which are generated
-    packageJson.xplat = { prefix };
-
-    // core set of supported root dependencies (out of the box)
-    // console.log('updatePackageForXplat:', JSON.stringify(packageJson));
-    return addRootDeps(tree, targetPlatforms, packageJson);
+    
+    if (updatedSettings) {
+      packageJson.xplat = { 
+        ...packageJson.xplat,
+        ...updatedSettings
+      };
+      // just update xplat workspace settings
+      return updateJsonFile(tree, packagePath, packageJson)
+    } else {
+      packageJson.xplat = { prefix };
+      // update root dependencies for the generated xplat support
+      // console.log('updatePackageForXplat:', JSON.stringify(packageJson));
+      return addRootDeps(tree, targetPlatforms, packageJson);
+    }
   }
   return tree;
 }
@@ -668,9 +729,10 @@ export function updatePackageForNgrx(
 export function updateTsConfig(
   tree: Tree,
   callback: (data: any) => void,
-  targetSuffix: string = ""
+  targetSuffix: string = '',
+  prefixPath: string = ''
 ) {
-  const tsConfigPath = `tsconfig${targetSuffix ? "." + targetSuffix : ""}.json`;
+  const tsConfigPath = `${prefixPath}tsconfig${targetSuffix ? "." + targetSuffix : ""}.json`;
   const tsConfig = getJsonFromFile(tree, tsConfigPath);
   callback(tsConfig);
   return updateJsonFile(tree, tsConfigPath, tsConfig);
@@ -843,7 +905,7 @@ export const addTestingFiles = (
 export function updateIDESettings(
   tree: Tree,
   platformArg: string,
-  devMode?: IDevMode
+  devMode?: PlatformTypes
 ) {
   if (isTest) {
     // ignore node file modifications when just testing
@@ -859,7 +921,8 @@ export function updateIDESettings(
     if (!devMode || devMode === "fullstack") {
       // show all
       for (const p of supportedPlatforms) {
-        userUpdates[`**/apps/${p}-*`] = false;
+        const appFilter = groupByName ? `*-${p}` : `${p}-*`;
+        userUpdates[`**/apps/${appFilter}`] = false;
         userUpdates[`**/xplat/${p}`] = false;
       }
     } else if (platformArg) {
@@ -867,7 +930,8 @@ export function updateIDESettings(
       // switch on/off platforms
       for (const p of supportedPlatforms) {
         const excluded = platforms.includes(p) ? false : true;
-        userUpdates[`**/apps/${p}-*`] = excluded;
+        const appFilter = groupByName ? `*-${p}` : `${p}-*`;
+        userUpdates[`**/apps/${appFilter}`] = excluded;
         userUpdates[`**/xplat/${p}`] = excluded;
         if (excluded) {
           // if excluding any platform at all, set the flag
@@ -1021,6 +1085,21 @@ export function updateIDESettings(
         "**/apps/nativescript-*/app/**/*.css": {
           when: "$(basename).scss"
         },
+        // also add groupByName support
+        "**/apps/*-nativescript/app/package.json": false,
+        "**/apps/*-nativescript/hooks": true,
+        "**/apps/*-nativescript/platforms": true,
+        "**/apps/*-nativescript/report": true,
+        "**/apps/*-nativescript/app/**/*.js": {
+          when: "$(basename).ts"
+        },
+        "**/apps/*-nativescript/app/**/*.d.ts": {
+          when: "$(basename).ts"
+        },
+        "**/apps/*-nativescript/app/**/*.css": {
+          when: "$(basename).scss"
+        },
+        // libs/xplat
         "**/libs/**/*.js": {
           when: "$(basename).ts"
         },
